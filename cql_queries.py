@@ -4,7 +4,7 @@
 # table removal queries
 session_table_drop = "DROP TABLE IF EXISTS session_table"
 user_table_drop = "DROP TABLE IF EXISTS user_table"
-song_table_drop = "DROP TABLE IF EXISTS song_table"
+songplay_table_drop = "DROP TABLE IF EXISTS songplay_table"
 
 # table creation queries
 session_table_create = """
@@ -39,8 +39,9 @@ CREATE TABLE IF NOT EXISTS user_table (
     PRIMARY KEY (user_id,session_id,item_in_session)
 );
 """
-song_table_create = """
-CREATE TABLE IF NOT EXISTS song_table (
+#TODO revisar
+songplay_table_create = """
+CREATE TABLE IF NOT EXISTS songplay_table (
     artist_name text,
     song_name text,
     song_length decimal,
@@ -89,8 +90,8 @@ INSERT INTO user_table (
 )
 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);
 """
-song_table_insert = """
-INSERT INTO song_table (
+songplay_table_insert = """
+INSERT INTO songplay_table (
     artist_name,
     song_name,
     song_length,
@@ -121,9 +122,9 @@ WHERE
     user_id = %s AND
     session_id = %s
 """
-song_table_select = """
+songplay_table_select = """
 SELECT user_first_name, user_last_name
-FROM song_table
+FROM songplay_table
 WHERE 
     song_name = %s
 """
@@ -132,10 +133,10 @@ WHERE
 create_table_queries = [
     session_table_create,
     user_table_create,
-    song_table_create
+    songplay_table_create
 ]
 drop_table_queries = [
     session_table_drop,
     user_table_drop,
-    song_table_drop    
+    songplay_table_drop    
 ]

@@ -157,23 +157,23 @@ def insert_rows(session,csv_file):
     for i, row in df.iterrows():
         # reorder columns to match inserts
         info = tuple(row[['artist','song','length','sessionId','itemInSession','userId','firstName','lastName','gender','level','location']])
-        # insert into session table
+        # insert into session history table
         try:
             session.execute(session_table_insert, info)
         except Exception as e:
             print("Error inserting into session table")
             print(e)
             return
-        # insert into user table
+        # insert into user history table
         try:
             session.execute(user_table_insert, info)
         except Exception as e:
             print("Error inserting into user table")
             print(e)
             return
-        # insert into song table
+        # insert into songplay history table
         try:
-            session.execute(song_table_insert, info)
+            session.execute(songplay_table_insert, info)
         except Exception as e:
             print("Error inserting into song table")
             print(e)
@@ -196,9 +196,6 @@ def main():
     merge_csvs(file_list,csv_file)
     # create the connection
     cluster, session = connect_cassandra()
-    # drop the old tables
-    #run_queries(session,drop_table_queries)
-    #print('Tables successfully dropped')
     # create the needed tables
     run_queries(session,create_table_queries)
     print('Tables successfully created')
