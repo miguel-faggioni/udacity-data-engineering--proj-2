@@ -39,7 +39,6 @@ CREATE TABLE IF NOT EXISTS user_table (
     PRIMARY KEY (user_id,session_id,item_in_session)
 );
 """
-#TODO revisar
 songplay_table_create = """
 CREATE TABLE IF NOT EXISTS songplay_table (
     artist_name text,
@@ -53,7 +52,7 @@ CREATE TABLE IF NOT EXISTS songplay_table (
     user_gender text,
     user_level text,
     user_location text,
-    PRIMARY KEY (song_name,artist_name)
+    PRIMARY KEY (song_name,artist_name,user_id)
 );
 """
 
