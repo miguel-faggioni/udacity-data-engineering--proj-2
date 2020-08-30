@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""ETL pipeline for the Data Modeling with Apache Cassandra project for Udacity.
+
+This file allows parsing of .csv files inside a folder and subsequent insertion
+into 3 tables on a Cassandra cluster running locally.
+
+Example:
+    $ python etl.py
+"""
 
 import pandas as pd
 import cassandra
@@ -12,7 +20,26 @@ import json
 import csv
 from cql_queries import *
 
+csv_folder = '/event_data'
+"""str: Folder in which the .csv files to be inserted are stored.
+"""
+
+csv_file = 'event_datafile_new.csv'
+"""str: File where the .csv files from the `csv_folder` will be saved
+after being united.
+"""
+
 def get_files_from_dir(dirpath):
+    """Function that lists all files inside the given `dirpath` relative
+    to the current working directory
+
+    Args:
+        dirpath (str): Path to the folder
+
+    Returns:
+        list: List of the files contained in the `dirpath`
+    """    
+
     # get the path relative to current path
     filepath = os.getcwd() + dirpath
     # iterate over the file list
@@ -23,33 +50,29 @@ def get_files_from_dir(dirpath):
     return file_path_list
 
 def merge_csvs(file_list,output_csv):
+    """Function that merges a list of .csv files into one .csv file containing 
+    all rows of the files on `file_list`
+
+    Args:
+        file_list (list): List of .csv files to merge
+        output_csv (str): Name of the .csv file in which to save the output
+    """
     # initiating an empty list of rows that will be generated from each file
     merged_rows = [] 
-    
     # for every filepath in the file list 
     for f in file_list:
-
         # read csv file 
         with open(f, 'r', encoding = 'utf8', newline='') as csvfile: 
             # create a csv reader object 
             csvreader = csv.reader(csvfile)
             # skip the header
             next(csvreader)
-        
             # extracting each data row one by one and append it        
             for line in csvreader:
                 #print(line)
                 merged_rows.append(line) 
-            
-    # uncomment the code below if you would like to get total number of rows 
-    #print(len(full_data_rows_list))
-    # uncomment the code below if you would like to check to see what the list of event data rows will look like
-    #print(full_data_rows_list)
-
-    # creating a smaller event data csv file called event_datafile_full csv that will be used to insert data into the \
-    # Apache Cassandra tables
+    # open the `output_csv` file for writing
     csv.register_dialect('myDialect', quoting=csv.QUOTE_ALL, skipinitialspace=True)
-
     with open(output_csv, 'w', encoding = 'utf8', newline='') as f:
         writer = csv.writer(f, dialect='myDialect')
         writer.writerow([
@@ -73,6 +96,13 @@ def merge_csvs(file_list,output_csv):
             writer.writerow((row[0], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[12], row[13], row[16]))
 
 def connect_cassandra():
+    """Function that connects to the Cassandra Cluster, creates the needed keyspace if 
+    it still doesn't exists, and connects to it
+
+    Returns:
+        (cassandra.cluster.Cluster): Cluster connection, used for later shutdown
+        (cassandra.cluster.Session): Cassandra session, used to run queries
+    """
     # connect to the cluster
     try: 
         cluster = Cluster(['127.0.0.1'])
@@ -96,6 +126,12 @@ def connect_cassandra():
     return (cluster,session)
 
 def run_queries(session,query_list):
+    """Function that runs a list of queries in the received Cassandra session
+
+    Args:
+        session (cassandra.cluster.Session): session in which the queries will be run
+        query_list (list): list of queries to be run
+    """
     for query in query_list:
         try:
             session.execute(query)
@@ -105,6 +141,15 @@ def run_queries(session,query_list):
             return
 
 def insert_rows(session,csv_file):
+    """Function that inserts the rows of `csv_file` into the session, user, and song tables
+    in the Cassandra cluster. The current progress is printed after each row is successfully
+    inserted into the tables.
+
+    Args:
+        session (cassandra.cluster.Session): session in which to run the insert queries
+        csv_file (str): name of the .csv file to be read and inserted
+    """
+    
     # open csv file
     df = pd.read_csv(csv_file)
 
@@ -137,9 +182,14 @@ def insert_rows(session,csv_file):
         print('{}/{} rows inserted'.format(i,len(df)))
 
 def main():
-    csv_folder = '/event_data'
-    csv_file = 'event_datafile_new.csv'
-                
+    """Main function of the ETL pipeline.
+
+    Merges all the files on `csv_folder` into the `csv_file`; 
+    creates a connection to the Cassandra cluster;
+    creates the tables if they still don't exists;
+    inserts the rows into each table;
+    then shuts down the connection.
+    """
     # get all the files in the event_data folder
     file_list = get_files_from_dir(csv_folder)
     # merge all files into one csv
@@ -147,8 +197,8 @@ def main():
     # create the connection
     cluster, session = connect_cassandra()
     # drop the old tables
-    run_queries(session,drop_table_queries)
-    print('Tables successfully dropped')
+    #run_queries(session,drop_table_queries)
+    #print('Tables successfully dropped')
     # create the needed tables
     run_queries(session,create_table_queries)
     print('Tables successfully created')
