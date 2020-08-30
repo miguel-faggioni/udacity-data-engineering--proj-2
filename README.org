@@ -1,10 +1,3 @@
-* TODO TODOS
-  - especificações do rubric
-  - readme
-  - comentários no código
-  - You can add description of your PRIMARY KEY and how you arrived at the decision to use each for the query
-  - Use Panda dataframes to add columns to your query output
-
 * Data Modeling with Apache Cassandra - Udacity
 
   This repository is intended for the second project of the Udacity Data Engineering Nanodegree Program: Data Modeling with Apache Cassandra.
@@ -20,6 +13,74 @@
    In this project, you'll apply what you've learned on data modeling with Apache Cassandra and complete an ETL pipeline using Python. To complete the project, you will need to model your data by creating tables in Apache Cassandra to run queries. You are provided with part of the ETL pipeline that transfers data from a set of CSV files within a directory to create a streamlined CSV file to model and insert data into Apache Cassandra tables.
 
    We have provided you with a project template that takes care of all the imports and provides a structure for ETL pipeline you'd need to process this data.
-* TODO Folder structure
-* TODO Usage
-* TODO Motivation
+* Folder structure
+
+#+BEGIN_SRC 
+/
+├── images - contains the images for the `Project_1B_ Project_Template.ipynb` notebok
+├── event_data - contains the event data in .csv format
+│   ├── (...)
+│   └── <year>-<month>-<day>-events.csv
+├── event_datafile_new.csv - .csv file with the content of the .csv files on ./event_data/
+├── reset.py - contains code that drops the tables for a fresh start
+├── etl.py - code to merge the files on ./event_data/ into ./event_datafile_new.csv, create the needed tables and insert the data into said tables
+├── Project_1B_ Project_Template.ipynb - jupyter notebook to walk through the necessary steps to run the ETL pipeline
+├── selects.py - code run the needed SELECT queries
+├── cql_queries.py - file containing the CQL queries to select from, create, and drop the tables needed
+├── README.md - this file in markdown
+└── README.org - this file in orgmode
+#+END_SRC
+
+* Usage
+
+** Removing old tables
+   To remove the tables and guarantee a fresh start when testing the ETL pipeline, run the following command in the terminal at the root of the project.
+
+   #+BEGIN_SRC bash
+     python reset.py
+   #+END_SRC
+
+   It connects to the Apache Cassandra cluster running locally, creates the keyspace if it still doesn't exist and connects to it, then drops the tables.
+** Running the pipeline
+   The ~etl.py~ file will run the ETL pipeline according to the project specifications. To run it, run the following command in the terminal at the root of the project.
+
+   #+BEGIN_SRC bash
+     python etl.py
+   #+END_SRC
+
+   It will:
+
+   1. merge the .csv files on ~./event_data/~ into ~./event_datafile_new.csv~;
+   2. connect to the Apache Cassandra cluster running on localhost;
+   3. create the tables needed for the pipeline if they don't exist yet;
+   4. parse the merged .csv file, inserting each row on each of the 3 tables;
+   5. then finally closing the connection to the cluster.
+   
+** Selecting from the tables
+
+   In order to run the SELECT statements described in the project specifications, run the following command in the terminal at the root of the project.
+
+   #+BEGIN_SRC bash
+     python selects.py
+   #+END_SRC
+
+   It will run the SELECT statements as required (also present in the jupyter notebook), but unlike the jupyter notebook, it will run a ~SELECT *~ for easier checking of the returned rows. The printed values will follow the return values specified, but running the functions outside ~main()~ allows the user to get info beyond the needed for the project specification.
+
+* Motivation for the Primary keys and Clustering Columns
+
+** Session history table
+   For the session history table, the columns ~session_id~, and ~item_in_session~ were selected as Primary key, with the ~item_in_session~ being the Clustering column.
+
+   The columns were selected due to the query that was going to be run on the table, and as they were enough to guarantee no collision would happen on the event data, no other clustering column was included.
+
+** User history table
+
+   For the user history table, the columns ~user_id~, ~session_id~, and ~item_in_session~ were selected as Primary key, with the ~session_id~ and ~item_in_session~ being Clustering columns.
+
+   The ~item_in_session~ was not in the WHERE part of the query that was going to be run, but adding it as a clustering column also allowed the returned rows to be sorted by it, as per the query specification. But even if using it to sort the results was not a requirement, it would not be possible to save multiple songs played in the same session by a user without it.
+
+** Songplay history table
+
+   For the songplay history table, the columns ~song_name~, ~artist_name~, and ~user_id~ were selected as Primary key, with the ~artist_name~ and ~user_id~ being Clustering columns.
+
+   Since only the ~song_name~ was used in the WHERE part of the query, the other 2 columns were as Clustering columns to make sure it was possible to track songplays and not only existing songs.
