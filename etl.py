@@ -155,25 +155,68 @@ def insert_rows(session,csv_file):
 
     # for each row on the file
     for i, row in df.iterrows():
-        # reorder columns to match inserts
-        info = tuple(row[['artist','song','length','sessionId','itemInSession','userId','firstName','lastName','gender','level','location']])
         # insert into session history table
         try:
-            session.execute(session_table_insert, info)
+            session.execute(
+                session_table_insert,
+                tuple(row[[
+                    'sessionId',
+                    'itemInSession',
+                    'artist',
+                    'song',
+                    'length',
+                    'userId',
+                    'firstName',
+                    'lastName',
+                    'gender',
+                    'level',
+                    'location'
+                ]])
+            )
         except Exception as e:
             print("Error inserting into session table")
             print(e)
             return
         # insert into user history table
         try:
-            session.execute(user_table_insert, info)
+            session.execute(
+                user_table_insert,
+                tuple(row[[
+                    'userId',
+                    'sessionId',
+                    'itemInSession',
+                    'artist',
+                    'song',
+                    'length',
+                    'firstName',
+                    'lastName',
+                    'gender',
+                    'level',
+                    'location'
+                ]])
+            )
         except Exception as e:
             print("Error inserting into user table")
             print(e)
             return
         # insert into songplay history table
         try:
-            session.execute(songplay_table_insert, info)
+            session.execute(
+                songplay_table_insert,
+                tuple(row[[
+                    'song',
+                    'userId',
+                    'artist',
+                    'length',
+                    'sessionId',
+                    'itemInSession',
+                    'firstName',
+                    'lastName',
+                    'gender',
+                    'level',
+                    'location'
+                ]])
+            )
         except Exception as e:
             print("Error inserting into song table")
             print(e)
