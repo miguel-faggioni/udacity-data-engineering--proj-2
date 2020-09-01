@@ -109,7 +109,7 @@ def main():
     except Exception as e:
         print(e)
     for row in rows:
-        print(row.item_in_session, row.artist_name,row.song_name,row.user_first_name,row.user_last_name)
+        print(row.artist_name,row.song_name,row.user_first_name,row.user_last_name)
     # run the select on the songplay history table
     print('\nsongplay history table SELECT:')
     try:
