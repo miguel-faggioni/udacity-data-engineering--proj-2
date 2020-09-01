@@ -8,7 +8,6 @@ Example:
 """
 import cassandra
 from cassandra.cluster import Cluster
-import re
 from cql_queries import *
 
 def connect_cassandra():
@@ -45,9 +44,6 @@ def connect_cassandra():
 def session_select(session,session_id,item_in_session):
     """Function that runs the SELECT query on the session history table
 
-    The regex is used to replace the columns selected on etl.py with
-    a `SELECT *` for easier checking of the rows returned.
-
     Args:
         session_id (int): id of the session to select
         item_in_session (int): number of the item on the session selected
@@ -55,16 +51,10 @@ def session_select(session,session_id,item_in_session):
     Returns:
         (cassandra.cluster.ResultSet): rows returned from the SELECT query
     """
-    return session.execute(
-        re.sub('SELECT [a-z_, ]*','SELECT *',session_table_select),
-        (session_id,item_in_session)
-    )
+    return session.execute(session_table_select,(session_id,item_in_session))
 
 def user_select(session,user_id,session_id):
     """Function that runs the SELECT query on the user history table
-
-    The regex is used to replace the columns selected on etl.py with
-    a `SELECT *` for easier checking of the rows returned.
 
     Args:
         user_id (int): id of the user to select
@@ -73,16 +63,10 @@ def user_select(session,user_id,session_id):
     Returns:
         (cassandra.cluster.ResultSet): rows returned from the SELECT query
     """
-    return session.execute(
-        re.sub('SELECT [a-z_, ]*','SELECT *',user_table_select),
-        (user_id,session_id)
-    )
+    return session.execute(user_table_select,(user_id,session_id))
 
 def songplay_select(session,song_name):
     """Function that runs the SELECT query on the user history table
-
-    The regex is used to replace the columns selected on etl.py with
-    a `SELECT *` for easier checking of the rows returned.
 
     The string formating is done outside the `session.execute` function
     since the parameter consists of only one element and the parsing gets
@@ -94,9 +78,7 @@ def songplay_select(session,song_name):
     Returns:
         (cassandra.cluster.ResultSet): rows returned from the SELECT query
     """
-    return session.execute(
-        re.sub('SELECT [a-z_, ]*','SELECT *',songplay_table_select)%song_name
-    )
+    return session.execute(songplay_table_select%song_name)
 
 def main():
     """Main function to test the SELECT queries
